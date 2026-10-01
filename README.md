@@ -199,17 +199,17 @@ A 404 against an unknown slug (e.g. `/api/strategies/does-not-exist/summary`) re
 
 ## Screen recording / screenshots
 
-**Not included in this automated session** — capturing a screen recording requires interactive
-browser access that wasn't available in this environment. Before submitting, please record a
-2–3 minute walkthrough showing:
+See [`docs/recording/strategy-page-walkthrough.gif`](./docs/recording/strategy-page-walkthrough.gif),
+captured live against the dev server. It walks through:
 
-1. `/strategy/kotak-sample-focus-portfolio` loading (header, returns table, holdings).
-2. The fee calculator recalculating live with at least two different amount/period
-   combinations.
-3. An invalid input (e.g. empty or negative amount) showing a validation error.
-4. `/strategy/does-not-exist` showing the page-level 404.
+1. `/strategy/kotak-sample-focus-portfolio` loading (header, returns table, top 5 holdings).
+2. The fee calculator recalculating live: ₹1,00,000 / 1 year (default), then ₹5,00,000 / 1 year,
+   then ₹5,00,000 / 10 years — each change updates Gross Value, Management Fee, and Net Value
+   instantly with no reload or submit button.
+3. An invalid input (amount = `-5000`) showing the "Amount must be greater than zero." validation
+   message and the breakdown panel falling back to a prompt instead of showing `NaN`/garbage.
+4. `/strategy/does-not-exist` showing the page-level 404 ("Strategy not found", with a link home).
 
-All functional correctness above was verified via `curl` (API responses, status codes, headers)
-and the full rendered HTML output (inspecting the server-rendered markup for each component) —
-not a live browser session, so a final visual/interactive check before submission is still
-worthwhile.
+All four moments were also independently verified via `curl` (API status codes/payloads) and the
+rendered HTML/JSON shown throughout this build — the recording is a visual confirmation on top of
+that, not the only evidence.
