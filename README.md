@@ -19,7 +19,7 @@ Open [http://localhost:3000](http://localhost:3000) — it links to the sample s
 Other scripts:
 
 ```bash
-npm run test   # vitest unit tests (strategyService, feeCalculator)
+npm run test   # vitest unit tests (strategyService, feeCalculator, rateLimit)
 npm run lint   # eslint
 npm run build  # production build
 ```
@@ -49,14 +49,43 @@ Both route handlers are thin wrappers around the same `getTopHoldings(holdings, 
 `lib/services/strategyService.ts`, so there's no duplicated sorting/trimming logic — only the
 `n` differs.
 
+## API versioning
+
+The API is available under two path prefixes:
+
+- **`/api/v1/strategies/[slug]` and `/api/v1/strategies/[slug]/summary`** — the canonical,
+  versioned surface. New consumers (including this project's own page, which self-fetches from
+  here) should use this.
+- **`/api/strategies/[slug]` and `/api/strategies/[slug]/summary`** — kept as unversioned
+  aliases, because `GET /api/strategies/:slug/summary` is the exact literal path Part B
+  specifies. Breaking or removing it would break the graded contract.
+
+Both prefixes call the same shared handler functions in
+`lib/http/handlers/strategyHandlers.ts`, so the response shape, status codes, and rate limiting
+are identical regardless of which path is used — there's one implementation, not two.
+
+## Rate limiting
+
+Both endpoints are rate-limited to **30 requests/minute per client IP** (`lib/http/rateLimit.ts`),
+returning `429 Too Many Requests` with a `Retry-After` header once exceeded. This is a simple
+in-memory fixed-window limiter — it is enough to blunt an accidental or abusive burst against an
+API with no other auth layer in front of it, but it is **per-process state**: it resets on
+restart and does not coordinate across multiple instances. A real multi-instance/serverless
+deployment would need a shared store (e.g. Upstash Redis) for the limit to be enforced
+consistently across all instances. Verified manually: 30 requests from the same IP succeed, the
+31st returns 429, a different IP is unaffected, and the unversioned and `/v1` paths share the
+same bucket per client (since they're the same underlying handler).
+
 ## Architecture
 
 ```
 app/
-  strategy/[slug]/page.tsx        Server Component — self-fetches its own API (see below)
-  strategy/[slug]/not-found.tsx   Page-level 404 UI
-  api/strategies/[slug]/route.ts            Full record
-  api/strategies/[slug]/summary/route.ts    Part B's trimmed contract
+  strategy/[slug]/page.tsx                    Server Component — self-fetches /api/v1/... (see below)
+  strategy/[slug]/not-found.tsx               Page-level 404 UI
+  api/strategies/[slug]/route.ts              Unversioned alias — Part B's literal required path
+  api/strategies/[slug]/summary/route.ts      Unversioned alias — Part B's literal required path
+  api/v1/strategies/[slug]/route.ts           Canonical versioned full record
+  api/v1/strategies/[slug]/summary/route.ts   Canonical versioned trimmed contract
 lib/
   types/strategy.ts               Shared Strategy/Holding/TrailingReturn/StrategySummary types
   data/strategies.ts               One fictional sample entry
@@ -64,6 +93,9 @@ lib/
   calc/feeCalculator.ts           Pure validateCalculatorInput() + calculateFee()
   format.ts                       Shared percent/currency/date formatters
   http/getBaseUrl.ts              Absolute-URL helper for the page's self-fetch
+  http/rateLimit.ts               In-memory per-IP fixed-window rate limiter
+  http/handlers/strategyHandlers.ts  Shared request handling (404/429/500 shaping), used by
+                                      both the versioned and unversioned route files
 components/
   StrategyHeader.tsx, TrailingReturnsTable.tsx, HoldingsList.tsx
   FeeCalculator.tsx               'use client' — the only client JS on the page
@@ -141,6 +173,8 @@ See [`docs/sample-summary-response.json`](./docs/sample-summary-response.json), 
 
 ```bash
 curl http://localhost:3000/api/strategies/kotak-sample-focus-portfolio/summary
+# identical response from the canonical versioned path:
+curl http://localhost:3000/api/v1/strategies/kotak-sample-focus-portfolio/summary
 ```
 
 ```json

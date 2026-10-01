@@ -9,7 +9,7 @@ import type { Strategy } from "@/lib/types/strategy";
 export const revalidate = 3600;
 
 async function fetchStrategy(slug: string): Promise<Strategy | null> {
-  const res = await fetch(`${getBaseUrl()}/api/strategies/${slug}`, {
+  const res = await fetch(`${getBaseUrl()}/api/v1/strategies/${slug}`, {
     next: { revalidate: 3600 },
   });
 

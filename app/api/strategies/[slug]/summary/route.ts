@@ -1,28 +1,17 @@
-import { NextResponse } from "next/server";
-import { getStrategySummary } from "@/lib/services/strategyService";
+import { handleGetStrategySummary } from "@/lib/http/handlers/strategyHandlers";
 
 export const revalidate = 3600;
 
+/**
+ * This is the exact path specified by the coding task's Part B
+ * ("GET /api/strategies/:slug/summary"), kept working unchanged. New
+ * consumers should prefer /api/v1/strategies/[slug]/summary — both call
+ * the same handler, so the response shape is identical.
+ */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  try {
-    const { slug } = await params;
-    const summary = getStrategySummary(slug);
-
-    if (!summary) {
-      return NextResponse.json(
-        { error: `No strategy found for "${slug}".` },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(summary);
-  } catch {
-    return NextResponse.json(
-      { error: "Something went wrong while fetching the strategy summary." },
-      { status: 500 }
-    );
-  }
+  const { slug } = await params;
+  return handleGetStrategySummary(request, slug);
 }
