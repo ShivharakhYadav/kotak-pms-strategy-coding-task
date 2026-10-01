@@ -199,7 +199,7 @@ A 404 against an unknown slug (e.g. `/api/strategies/does-not-exist/summary`) re
 
 ## Screen recording / screenshots
 
-See [`docs/recording/`](./docs/recording/) for the walkthrough, showing:
+See [`docs/recording/demo.mp4`](./docs/recording/demo.mp4) for the walkthrough, showing:
 
 1. `/strategy/kotak-sample-focus-portfolio` loading (header, returns table, top 5 holdings).
 2. The fee calculator recalculating live across at least two different amount/period
