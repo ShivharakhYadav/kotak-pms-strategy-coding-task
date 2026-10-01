@@ -199,16 +199,13 @@ A 404 against an unknown slug (e.g. `/api/strategies/does-not-exist/summary`) re
 
 ## Screen recording / screenshots
 
-See [`docs/recording/strategy-page-walkthrough.gif`](./docs/recording/strategy-page-walkthrough.gif),
-captured live against the dev server. It walks through:
+See [`docs/recording/`](./docs/recording/) for the walkthrough, showing:
 
 1. `/strategy/kotak-sample-focus-portfolio` loading (header, returns table, top 5 holdings).
-2. The fee calculator recalculating live: ₹1,00,000 / 1 year (default), then ₹5,00,000 / 1 year,
-   then ₹5,00,000 / 10 years — each change updates Gross Value, Management Fee, and Net Value
-   instantly with no reload or submit button.
-3. An invalid input (amount = `-5000`) showing the "Amount must be greater than zero." validation
-   message and the breakdown panel falling back to a prompt instead of showing `NaN`/garbage.
-4. `/strategy/does-not-exist` showing the page-level 404 ("Strategy not found", with a link home).
+2. The fee calculator recalculating live across at least two different amount/period
+   combinations — no reload or submit button.
+3. An invalid input (e.g. a negative amount) showing a validation error instead of `NaN`/garbage.
+4. `/strategy/does-not-exist` showing the page-level 404.
 
 All four moments were also independently verified via `curl` (API status codes/payloads) and the
 rendered HTML/JSON shown throughout this build — the recording is a visual confirmation on top of
